@@ -1,11 +1,30 @@
 [package]
-name = "rs-stellarbeat-history-verification"
+name = "wasm-stellar-history-archive-hasher"
 version = "0.1.0"
 edition = "2021"
+authors = ["Pieterjan84 <pieterjan@stellarbeat.io>"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook"]
 
 [dependencies]
+wasm-bindgen = "0.2.83"
+js-sys = "0.3.60"
+console_error_panic_hook = { version = "0.1.6", optional = true }
+rs-stellarbeat-history-verification = { git = "https://github.com/stellarbeat/rs-stellarbeat-history-verification"}
 stellar-xdr = { git = "https://github.com/stellar/rs-stellar-xdr", features=['base64', 'std'] }
 sha2 = "0.10.6"
 base64 = "0.13.1"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.13"
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

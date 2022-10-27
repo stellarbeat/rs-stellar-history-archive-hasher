@@ -1,21 +1,20 @@
-use stellar_xdr::{Error, ReadXdr, TransactionHistoryResultEntry, WriteXdr};
-use sha2::{Digest, Sha256};
+use js_sys::{Uint8Array};
+use wasm_bindgen::prelude::*;
 
-#[derive(Debug)]
-#[derive(PartialEq)]
-pub struct HashResult<const L: usize> {
-    pub ledger: u32,
-    pub hash: [u8;L],
+
+#[wasm_bindgen]
+pub unsafe fn hash_transaction_history_result_entry(bytes: &[u8]) -> Uint8Array {
+    return Uint8Array::view(&internal::hash_transaction_history_result_entry(bytes).unwrap());
 }
 
-pub fn hash_transaction_history_result_entry<'a>(bytes: impl AsRef<[u8]>) -> Result<HashResult<32>, Error> {
-    let transaction_history_result_entry = TransactionHistoryResultEntry::from_xdr(bytes)?;
-    let xdr = transaction_history_result_entry.tx_result_set.to_xdr()?;
-    let hash = Sha256::digest(&xdr).into();
+pub mod internal {
+    use stellar_xdr::{Error, ReadXdr, TransactionHistoryResultEntry, WriteXdr};
+    use sha2::{Digest, Sha256};
 
-    return Ok(HashResult {
-        hash,
-        ledger: transaction_history_result_entry.ledger_seq,
-    });
+    pub fn hash_transaction_history_result_entry(bytes: impl AsRef<[u8]>) -> Result<[u8; 32], Error> {
+        let transaction_history_result_entry = TransactionHistoryResultEntry::from_xdr(bytes)?;
+        let xdr = transaction_history_result_entry.tx_result_set.to_xdr()?;
+
+        return Ok(Sha256::digest(&xdr).into());
+    }
 }
-
