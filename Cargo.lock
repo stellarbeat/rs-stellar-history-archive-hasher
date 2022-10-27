@@ -160,6 +160,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "stellar-history-archive-hasher"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "console_error_panic_hook",
+ "js-sys",
+ "rs-stellarbeat-history-verification",
+ "sha2",
+ "stellar-xdr",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
+
+[[package]]
 name = "stellar-xdr"
 version = "0.0.6"
 source = "git+https://github.com/stellar/rs-stellar-xdr#3ba1368786bc222735b09b3f99c0c8e6a71c18ce"
@@ -285,20 +299,6 @@ checksum = "4683da3dfc016f704c9f82cf401520c4f1cb3ee440f7f52b3d6ac29506a49ca7"
 dependencies = [
  "proc-macro2",
  "quote",
-]
-
-[[package]]
-name = "wasm-stellar-history-archive-hasher"
-version = "0.1.0"
-dependencies = [
- "base64",
- "console_error_panic_hook",
- "js-sys",
- "rs-stellarbeat-history-verification",
- "sha2",
- "stellar-xdr",
- "wasm-bindgen",
- "wasm-bindgen-test",
 ]
 
 [[package]]
