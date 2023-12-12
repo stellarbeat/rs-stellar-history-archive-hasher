@@ -1,2 +1,5 @@
 /target
 /pkg
+.DS_Store
+.idea/
+
