@@ -214,7 +214,7 @@ dependencies = [
 
 [[package]]
 name = "stellar-history-archive-hasher"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "base64",
  "console_error_panic_hook",
