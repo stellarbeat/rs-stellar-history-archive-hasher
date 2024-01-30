@@ -13,7 +13,7 @@ pub unsafe fn hash_transaction_history_entry(bytes: &[u8]) -> Uint8Array {
 }
 
 pub mod internal {
-    use stellar_xdr::curr::{Error, ReadXdr, TransactionHistoryResultEntry, TransactionHistoryEntry, WriteXdr, TransactionEnvelope, Limits};
+    use stellar_xdr::curr::{Error, ReadXdr, TransactionHistoryResultEntry, TransactionHistoryEntry, WriteXdr, TransactionEnvelope, Limits, TransactionHistoryEntryExt};
     use sha2::{Digest, Sha256};
 
     pub fn hash_transaction_history_result_entry(bytes: impl AsRef<[u8]>) -> Result<[u8; 32], Error> {
@@ -25,28 +25,38 @@ pub mod internal {
 
     struct TxEnvelope {
         hash: [u8; 32],
-        tx: Vec<u8>
+        tx: Vec<u8>,
     }
 
     pub fn hash_transaction_history_entry(bytes: impl AsRef<[u8]>) -> Result<[u8; 32], Error> {
         let transaction_history_entry = TransactionHistoryEntry::from_xdr(bytes, Limits::none())?;
-        let mut transaction_envelopes: Vec<TxEnvelope> = Vec::new();
-        let txs_vec: Vec<TransactionEnvelope> = transaction_history_entry.tx_set.txs.into_vec();
-        for tx in txs_vec {
-            let tx_envelope_xdr = tx.to_xdr(Limits::none())?;
-            transaction_envelopes.push(TxEnvelope{
-                hash: Sha256::digest(&tx_envelope_xdr).into(),
-                tx: tx_envelope_xdr
-            });
-        }
-        let mut hasher = Sha256::new();
-        sha2::Digest::update(& mut hasher, &transaction_history_entry.tx_set.previous_ledger_hash.to_xdr(Limits::none())?);
 
-        transaction_envelopes.sort_unstable_by(|a, b| {a.hash.cmp(&b.hash)});
-        for sorted_tx in transaction_envelopes {
-            sha2::Digest::update(& mut hasher, &sorted_tx.tx);
-        }
+        return match transaction_history_entry.ext {
+            TransactionHistoryEntryExt::V1(generalized) => {
+                let mut hasher = Sha256::new();
+                sha2::Digest::update(&mut hasher, &generalized.to_xdr(Limits::none())?);
+                Ok(hasher.finalize().into())
+            }
+            _ => {
+                let mut transaction_envelopes: Vec<TxEnvelope> = Vec::new();
+                let txs_vec: Vec<TransactionEnvelope> = transaction_history_entry.tx_set.txs.into_vec();
+                for tx in txs_vec {
+                    let tx_envelope_xdr = tx.to_xdr(Limits::none())?;
+                    transaction_envelopes.push(TxEnvelope {
+                        hash: Sha256::digest(&tx_envelope_xdr).into(),
+                        tx: tx_envelope_xdr,
+                    });
+                }
+                let mut hasher = Sha256::new();
+                sha2::Digest::update(&mut hasher, &transaction_history_entry.tx_set.previous_ledger_hash.to_xdr(Limits::none())?);
 
-        return Ok(hasher.finalize().into());
+                transaction_envelopes.sort_unstable_by(|a, b| { a.hash.cmp(&b.hash) });
+                for sorted_tx in transaction_envelopes {
+                    sha2::Digest::update(&mut hasher, &sorted_tx.tx);
+                }
+
+                Ok(hasher.finalize().into())
+            }
+        }
     }
 }

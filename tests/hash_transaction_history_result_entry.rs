@@ -1,6 +1,6 @@
 extern crate core;
 
-use stellar_xdr::Error;
+use stellar_xdr::curr::Error;
 
 #[test]
 fn test(){
